@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User } from "lucide-react";
+import { BadgeCheck, CalendarDays, Camera, Mail, Shield, User } from "lucide-react";
 
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
@@ -9,11 +9,8 @@ const ProfilePage = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-
     reader.readAsDataURL(file);
-
     reader.onload = async () => {
       const base64Image = reader.result;
       setSelectedImg(base64Image);
@@ -21,78 +18,66 @@ const ProfilePage = () => {
     };
   };
 
+  if (!authUser) return null;
+
   return (
-    <div className="h-screen pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
-        <div className="bg-base-300 rounded-xl p-6 space-y-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold ">Profile</h1>
-            <p className="mt-2">Your profile information</p>
+    <div className="mx-auto max-w-5xl px-5 py-10">
+      <div className="mb-8 flex items-end justify-between">
+        <div>
+          <span className="chip mb-3"><User className="size-3.5" /> Profile</span>
+          <h1 className="text-4xl font-bold tracking-tight">Your account</h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--txt-2)" }}>Manage how you appear in conversations.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+        {/* Avatar card */}
+        <div className="card-glass p-6 text-center">
+          <div className="relative mx-auto w-fit">
+            <img src={selectedImg || authUser.profilePic || "/avatar.png"} alt="Profile"
+              className="size-36 rounded-full object-cover" style={{ border: "3px solid rgba(255,255,255,0.08)" }} />
+            <label htmlFor="avatar-upload"
+              className={`absolute bottom-1 right-1 flex size-10 cursor-pointer items-center justify-center rounded-full ${isUpdatingProfile ? "pointer-events-none animate-pulse" : ""}`}
+              style={{ background: "var(--accent-grad)" }}>
+              <Camera className="size-4" style={{ color: "#0b0b14" }} />
+              <input type="file" id="avatar-upload" className="hidden" accept="image/*"
+                onChange={handleImageUpload} disabled={isUpdatingProfile} />
+            </label>
           </div>
-
-          {/* avatar upload section */}
-
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="Profile"
-                className="size-32 rounded-full object-cover border-4 "
-              />
-              <label
-                htmlFor="avatar-upload"
-                className={`
-                  absolute bottom-0 right-0 
-                  bg-base-content hover:scale-105
-                  p-2 rounded-full cursor-pointer 
-                  transition-all duration-200
-                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
-                `}
-              >
-                <Camera className="w-5 h-5 text-base-200" />
-                <input
-                  type="file"
-                  id="avatar-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUpdatingProfile}
-                />
-              </label>
-            </div>
-            <p className="text-sm text-zinc-400">
-              {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
-            </p>
+          <h2 className="mt-5 text-xl font-semibold">{authUser.fullName}</h2>
+          <p className="text-sm" style={{ color: "var(--txt-2)" }}>{authUser.email}</p>
+          <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+            style={{ color: "#86efac", background: "rgba(34,197,94,0.1)", borderColor: "rgba(34,197,94,0.25)" }}>
+            <BadgeCheck className="size-3.5" /> Active account
           </div>
+          <p className="mt-4 text-xs" style={{ color: "var(--txt-3)" }}>
+            {isUpdatingProfile ? "Uploading new photo..." : "Click the camera icon to change your photo"}
+          </p>
+        </div>
 
-          <div className="space-y-6">
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Full Name
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="text-sm text-zinc-400 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email Address
-              </div>
-              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
+        {/* Details */}
+        <div className="space-y-6">
+          <div className="card-glass p-6">
+            <h3 className="text-lg font-semibold">Personal details</h3>
+            <p className="text-sm" style={{ color: "var(--txt-3)" }}>Visible to people you chat with.</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Field icon={<User className="size-4" />} label="Full name" value={authUser.fullName} />
+              <Field icon={<Mail className="size-4" />} label="Email" value={authUser.email} />
             </div>
           </div>
 
-          <div className="mt-6 bg-base-300 rounded-xl p-6">
-            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                <span>Member Since</span>
-                <span>{authUser.createdAt?.split("T")[0]}</span>
+          <div className="card-glass p-6">
+            <h3 className="text-lg font-semibold">Account</h3>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="card-flat p-4">
+                <CalendarDays className="mb-2 size-5" style={{ color: "var(--accent)" }} />
+                <p className="text-xs uppercase tracking-wider" style={{ color: "var(--txt-3)" }}>Member since</p>
+                <p className="mt-1 font-semibold">{authUser.createdAt?.split("T")[0] || "—"}</p>
               </div>
-              <div className="flex items-center justify-between py-2">
-                <span>Account Status</span>
-                <span className="text-green-500">Active</span>
+              <div className="card-flat p-4">
+                <Shield className="mb-2 size-5" style={{ color: "var(--accent-2)" }} />
+                <p className="text-xs uppercase tracking-wider" style={{ color: "var(--txt-3)" }}>Status</p>
+                <p className="mt-1 font-semibold" style={{ color: "#86efac" }}>Active & verified</p>
               </div>
             </div>
           </div>
@@ -101,4 +86,14 @@ const ProfilePage = () => {
     </div>
   );
 };
+
+const Field = ({ icon, label, value }) => (
+  <div className="card-flat p-4">
+    <div className="mb-1.5 flex items-center gap-2 text-xs uppercase tracking-wider" style={{ color: "var(--txt-3)" }}>
+      {icon}{label}
+    </div>
+    <p className="font-medium">{value}</p>
+  </div>
+);
+
 export default ProfilePage;
